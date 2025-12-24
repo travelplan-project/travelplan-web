@@ -1,75 +1,78 @@
 # TravelPlan Web 🚗✈️
 
-Frontend em React + Vite para o sistema de gestão de viagens.
+Este é o Frontend do ecossistema **TravelPlan**, desenvolvido em React para gerenciar veículos e viagens de forma integrada ao projeto Backend em Spring Boot. O objetivo é replicar a experiência do App Android em uma interface Web moderna e responsiva.
 
-## 🛠️ Tecnologias
-- **React 18** + **Vite**
-- **Tailwind CSS v4** (Estilização)
-- **Axios** (Comunicação com API Spring Boot)
+## 🏛️ Arquitetura e Integração
 
-## 🚀 Como Rodar o Projeto
-1. **Instalar Dependências:**
-   ```bash
-   npm install
+O sistema opera em uma arquitetura de cliente-servidor:
+1.  **Frontend:** SPA (Single Page Application) construída com **React 18**, **Vite** e **Tailwind CSS v4**.
+2.  **Backend (API):** Serviço REST em **Java / Spring Boot** que gerencia a lógica de negócio e persistência de dados.
+3.  **Comunicação:** Realizada via requisições assíncronas utilizando a biblioteca **Axios**.
 
+---
 
-2. **Configurar Backend:**
+## 🛠️ Tecnologias e Dependências
 
-Certifique-se de que o Spring Boot está rodando em http://localhost:8080.
+- **Vite**: Ferramenta de build e servidor de desenvolvimento ultra-rápido.
+- **Tailwind CSS v4**: Estilização baseada em utilitários e variáveis de tema modernas.
+- **Axios**: Cliente HTTP para consumo de endpoints.
+- **PostCSS**: Processador de CSS para compatibilidade e otimização.
 
-Verifique se a anotação @CrossOrigin está ativa no Java.
-
-3. **Iniciar Servidor de Desenvolvimento:**
-   ```bash
-   npm run dev  
+---
 
 ## 📂 Estrutura de Pastas
 
-- src/components: Componentes reutilizáveis (Ex: VehicleCard).
-- src/services: Configurações de API e Axios.
-- src/assets: Imagens e ícones.
+Para manter a organização e escalabilidade, o projeto utiliza a seguinte estrutura:
+
+- `src/components/`: Componentes visuais reutilizáveis (Ex: `VehicleCard.jsx`).
+- `src/services/`: Configurações de serviços e conexão com a API (`api.js`).
+- `src/assets/`: Recursos estáticos como imagens e ícones.
+- `src/pages/`: Telas principais da aplicação (Home, Veículos, Viagens).
+- `App.jsx`: Componente principal que gerencia o estado e a renderização.
+- `index.css`: Configurações globais e definição do tema visual (Cores Android).
 
 ---
 
-### 2. Garantia de Dependências (`package.json`)
-Sempre que você instala algo (como fez com o Axios e o Tailwind), o arquivo `package.json` registra isso. 
-* **Para retomar o trabalho:** Basta baixar o código e digitar `npm install`. O Node.js lerá esse arquivo e baixará todas as bibliotecas exatamente nas versões que estamos usando agora.
+## 🚀 Como Retomar o Desenvolvimento
+
+Sempre que precisar configurar o ambiente em uma nova máquina ou retomar o projeto, siga estes passos:
+
+### 1. Pré-requisitos
+- Node.js instalado (versão 18 ou superior).
+- Projeto Backend (Spring Boot) configurado para aceitar **CORS** da origem `http://localhost:5173`.
+
+### 2. Instalação
+No terminal da raiz do projeto, instale todas as dependências listadas no `package.json`:
+```bash
+npm install
+```
+### 3. Configuração da API
+Verifique se o arquivo src/services/api.js está apontando para o endereço correto do seu servidor local:
+
+```JavaScript
+const api = axios.create({
+  baseURL: 'http://localhost:8081/api', 
+});
+```
+
+### 4. Execução
+Inicie o servidor de desenvolvimento:
+
+```Bash
+npm run dev
+```
+
+--- 
+
+## 🔧 Configurações Críticas de Ambiente
+**Resolvendo Alertas de CSS no VS Code**
+O Tailwind v4 utiliza regras novas como @theme e @layer. Para evitar alertas de "Unknown at rule" no VS Code:
+
+1. Vá em Settings (Ctrl + ,).
+2. Pesquise por css.lint.unknownAtRules.
+3. Altere para ignore.
+
+**Integração com GitHub**
+Este projeto está vinculado à organização travelplan-project. Certifique-se de realizar commits frequentes via GitHub Desktop para manter a sincronia e o backup na nuvem.
 
 ---
-
-### 3. Sincronização Final com o GitHub
-Para que nada se perca, você deve "commitar" e "pushar" as alterações:
-
-1.  Abra o **GitHub Desktop**.
-2.  No campo **Summary**, digite: `Feat: Configuração inicial do Tailwind v4 e listagem de veículos`.
-3.  Clique em **Commit to main**.
-4.  Clique em **Push origin**.
-
-Agora, seu código está salvo na nuvem da organização. Se seu computador quebrar hoje, bastará clonar o repositório em outro PC, rodar `npm install` e tudo estará lá.
-
-
----
-
-### Dica para o Futuro: Variáveis de Ambiente
-Atualmente, sua URL do backend está fixa no código (`localhost:8080`). No futuro, se você hospedar o Java na nuvem, precisaremos usar um arquivo `.env`. Mas, por enquanto, a estrutura atual está perfeita para desenvolvimento local.
-
-**Deseja que eu ajude a criar um "Script de Setup" automático ou a documentação atual já atende o que você precisa para pausar agora?**
-
----
-
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
