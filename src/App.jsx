@@ -1,29 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import api from './services/api';
+import VehicleCard from './components/VehicleCard';
 
 function App() {
+  const [veiculos, setVeiculos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Função para buscar dados da sua API Java
+    api.get('/vehicles') // Altere para o seu endpoint real (ex: /vehicles)
+      .then(response => {
+        setVeiculos(response.data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error("Erro ao buscar veículos:", error);
+        setLoading(false);
+      });
+  }, []);
+
   return (
-    <div className="min-h-screen p-4 flex items-center justify-center">
-      {/* Card Principal */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-android-blue shadow-md p-4 sticky top-0 z-10">
+        <h1 className="text-white text-xl font-bold">Meus Veículos</h1>
+      </header>
+
+      <main className="p-4 max-w-2xl mx-auto flex flex-col gap-3">
+        {loading ? (
+          <p className="text-center mt-10 text-gray-500 italic">Carregando seus dados...</p>
+        ) : (
+          veiculos.map(v => (
+            <VehicleCard key={v.id} vehicle={v} />
+          ))
+        )}
         
-        {/* Barra de Título (Simulando Toolbar do Android) */}
-        <div className="bg-android-blue p-4">
-          <h2 className="text-white font-bold text-lg">TravelPlan Web</h2>
-        </div>
-
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-android-dark mb-2">
-            Bem-vindo ao seu painel
-          </h1>
-          <p className="text-gray-600 mb-6">
-            O Tailwind v4 está ativo! Agora podemos criar seus Cards de Veículos.
-          </p>
-
-          <button className="w-full bg-android-blue hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all active:scale-95 shadow-lg">
-            Ver Meus Veículos
-          </button>
-        </div>
-      </div>
+        {/* Botão Flutuante (FAB) */}
+        <button className="fixed bottom-6 right-6 w-14 h-14 bg-android-blue text-white rounded-full shadow-2xl text-3xl flex items-center justify-center hover:scale-110 transition-transform">
+          +
+        </button>
+      </main>
     </div>
   );
 }
