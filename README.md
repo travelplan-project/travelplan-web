@@ -1,3 +1,17 @@
+# TravelPlan Web 🚗✈️
+
+Frontend em React + Vite para o sistema de gestão de viagens.
+
+## 🛠️ Tecnologias
+- **React 18** + **Vite**
+- **Tailwind CSS v4** (Estilização)
+- **Axios** (Comunicação com API Spring Boot)
+
+## 🚀 Como Rodar o Projeto
+1. **Instalar Dependências:**
+   ```bash
+   npm install
+   
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
