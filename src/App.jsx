@@ -1,35 +1,28 @@
-import { useEffect, useState } from 'react';
-import api from './services/api';
+import React from 'react';
 
 function App() {
-  const [resumo, setResumo] = useState([]);
-
-  useEffect(() => {
-    // Busca o DTO que criamos no reposit�rio
-    api.get('/achievements/resume')
-      .then(response => setResumo(response.data))
-      .catch(err => console.error("Erro na API: ", err));
-  }, []);
-
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial' }}>
-      <h1>Dashboard TravelPlan</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-        {resumo.map((item, index) => (
-          <div key={index} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px' }}>
-            <h3>{item.state} - {item.country}</h3>
-            <p>Conquistas: {item.vl_conquered} / {item.vl_total}</p>
-            <div style={{ background: '#eee', height: '10px', borderRadius: '5px' }}>
-              <div style={{ 
-                background: 'green', 
-                width: `${item.perc_conquered}%`, 
-                height: '100%', 
-                borderRadius: '5px' 
-              }}></div>
-            </div>
-            <span>{item.perc_conquered.toFixed(1)}% Completo</span>
-          </div>
-        ))}
+    <div className="min-h-screen p-4 flex items-center justify-center">
+      {/* Card Principal */}
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        
+        {/* Barra de Título (Simulando Toolbar do Android) */}
+        <div className="bg-android-blue p-4">
+          <h2 className="text-white font-bold text-lg">TravelPlan Web</h2>
+        </div>
+
+        <div className="p-6">
+          <h1 className="text-2xl font-bold text-android-dark mb-2">
+            Bem-vindo ao seu painel
+          </h1>
+          <p className="text-gray-600 mb-6">
+            O Tailwind v4 está ativo! Agora podemos criar seus Cards de Veículos.
+          </p>
+
+          <button className="w-full bg-android-blue hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all active:scale-95 shadow-lg">
+            Ver Meus Veículos
+          </button>
+        </div>
       </div>
     </div>
   );
