@@ -5,6 +5,8 @@
   --color-android-blue: #1a73e8;
   --color-android-dark: #202124;
   --color-android-bg: #f8f9fa;
+  --color-android-accent: #34A6A6;
+  --color-android-orange: #FF7125;
 }
 
 /* Isso garante que o fundo da página seja sempre o cinza claro do Android */
