@@ -88,7 +88,7 @@ export default function Home() {
               }} className="p-2 bg-white rounded-full shadow-md ml-2">‹</button>
             </div>
 
-            <div ref={carouselRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory py-2 px-6">
+            <div ref={carouselRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory py-2 px-6 no-scrollbar">
               {filtered.map(v => (
                 <div key={v.id} className="carousel-item snap-center flex-none w-[calc(100%-1rem)] sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1rem)]">
                   <VehicleCard vehicle={v} />
@@ -105,7 +105,7 @@ export default function Home() {
         )}
       </section>
 
-      <button onClick={() => navigate('/vehicles/new')} className="fixed bottom-6 right-6 w-14 h-14 bg-android-orange text-white rounded-full shadow-2xl text-3xl flex items-center justify-center hover:scale-110 transition-transform">
+      <button onClick={() => navigate('/vehicles/new')} className="fixed bottom-6 right-6 w-14 h-14 bg-android-accent text-white rounded-full shadow-2xl text-3xl flex items-center justify-center hover:scale-110 transition-transform">
         +
       </button>
     </div>

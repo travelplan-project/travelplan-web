@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -6,44 +6,125 @@ export default function CreateVehicle() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '',
-    license_plate: '',
+    short_name: '',
+    brand: '',
     model: '',
-    status: 'Ativo',
-    dt_sale: '',
-    km: '',
-    last_maintenance: '',
+    vehicle_type: '',
+    fuel_type: '',
+    year_model: '',
+    year_manufacture: '',
+    license_plate: '',
     color: '',
-    year: '',
+    color_code: '',
+    vin: '',
+    licence_number: '',
+    state: '',
+    city: '',
+    dt_acquisition: '',
+    odometer_acquisition: '',
+    dt_sale: '',
+    doors: '',
+    capacity: '',
+    power: '',
+    estimated_value: '',
+    full_capacity: '',
+    avg_consumption: '',
+    avg_cost_litre: '',
+    dt_odometer: '',
+    odometer: '',
+    dt_last_fueling: '',
+    last_supply_reason_type: '',
+    accumulated_number_liters: '',
+    accumulated_supply_value: '',
+    vehicle_owner: null,
+    image: null,
     notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [options, setOptions] = useState({ persons: null });
 
-  const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    const fetchPersons = async () => {
+      const candidates = ['/person', '/persons', '/people', '/person/list', '/persons/list'];
+      for (const url of candidates) {
+        try {
+          const res = await api.get(url);
+          const body = res.data;
+          let list = null;
+          if (Array.isArray(body)) list = body;
+          else if (Array.isArray(body.data)) list = body.data;
+          else if (Array.isArray(body.items)) list = body.items;
+          else if (Array.isArray(body.content)) list = body.content;
+
+          if (Array.isArray(list)) {
+            setOptions({ persons: list });
+            return;
+          }
+        } catch (e) {
+          // try next endpoint
+        }
+      }
+      setOptions({ persons: null });
+    };
+    fetchPersons();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, files } = e.target;
+    if (type === 'file') return setForm(prev => ({ ...prev, [name]: files?.[0] || null }));
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // Prepare payload: convert numeric fields
+    // Prepare payload: convert numeric fields and empty strings to nulls where appropriate
     const payload = {
       ...form,
-      km: form.km === '' ? null : Number(form.km),
-      year: form.year === '' ? null : Number(form.year),
+      vehicle_type: form.vehicle_type === '' ? null : Number(form.vehicle_type),
+      fuel_type: form.fuel_type === '' ? null : Number(form.fuel_type),
+      year_model: form.year_model || null,
+      year_manufacture: form.year_manufacture || null,
+      color_code: form.color_code === '' ? null : Number(form.color_code),
+      odometer_acquisition: form.odometer_acquisition === '' ? null : Number(form.odometer_acquisition),
+      doors: form.doors === '' ? null : Number(form.doors),
+      capacity: form.capacity === '' ? null : Number(form.capacity),
+      power: form.power === '' ? null : Number(form.power),
+      estimated_value: form.estimated_value === '' ? null : Number(form.estimated_value),
+      full_capacity: form.full_capacity === '' ? null : Number(form.full_capacity),
+      avg_consumption: form.avg_consumption === '' ? null : Number(form.avg_consumption),
+      avg_cost_litre: form.avg_cost_litre === '' ? null : Number(form.avg_cost_litre),
+      odometer: form.odometer === '' ? null : Number(form.odometer),
+      last_supply_reason_type: form.last_supply_reason_type === '' ? null : Number(form.last_supply_reason_type),
+      accumulated_number_liters: form.accumulated_number_liters === '' ? null : Number(form.accumulated_number_liters),
+      accumulated_supply_value: form.accumulated_supply_value === '' ? null : Number(form.accumulated_supply_value),
+      dt_acquisition: form.dt_acquisition || null,
       dt_sale: form.dt_sale || null,
-      last_maintenance: form.last_maintenance || null,
+      dt_odometer: form.dt_odometer || null,
+      dt_last_fueling: form.dt_last_fueling || null,
+      vehicle_owner: form.vehicle_owner || null,
+      image: form.image || null,
     };
 
-    api.post('/vehicles', payload)
-      .then(() => {
-        setLoading(false);
-        navigate('/');
-      })
-      .catch(err => {
-        setLoading(false);
-        setError(err.response?.data || err.message || 'Erro ao criar veículo');
+    // If image file provided, send multipart/form-data
+    if (form.image instanceof File) {
+      const fd = new FormData();
+      Object.entries(payload).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) fd.append(k, String(v));
       });
+      fd.append('image', form.image);
+
+      api.post('/vehicles', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        .then(() => { setLoading(false); navigate('/'); })
+        .catch(err => { setLoading(false); setError(err.response?.data || err.message || 'Erro ao criar veículo'); });
+    } else {
+      api.post('/vehicles', payload)
+        .then(() => { setLoading(false); navigate('/'); })
+        .catch(err => { setLoading(false); setError(err.response?.data || err.message || 'Erro ao criar veículo'); });
+    }
   };
 
   return (
@@ -63,8 +144,13 @@ export default function CreateVehicle() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Placa</label>
-          <input name="license_plate" value={form.license_plate} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Nome Curto</label>
+          <input name="short_name" value={form.short_name} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Marca</label>
+          <input name="brand" value={form.brand} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
@@ -73,26 +159,28 @@ export default function CreateVehicle() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Status</label>
-          <select name="status" value={form.status} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2">
-            <option>Ativo</option>
-            <option>Vendido</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700">Tipo (ID)</label>
+          <input name="vehicle_type" value={form.vehicle_type} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Data de Venda</label>
-          <input type="date" name="dt_sale" value={form.dt_sale} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Combustível (ID)</label>
+          <input name="fuel_type" value={form.fuel_type} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Km</label>
-          <input type="number" name="km" value={form.km} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Ano do Modelo</label>
+          <input name="year_model" value={form.year_model} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Última manutenção</label>
-          <input type="date" name="last_maintenance" value={form.last_maintenance} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Ano Fabricação</label>
+          <input name="year_manufacture" value={form.year_manufacture} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Placa</label>
+          <input name="license_plate" value={form.license_plate} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
@@ -101,18 +189,139 @@ export default function CreateVehicle() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Ano</label>
-          <input type="number" name="year" value={form.year} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Código da Cor</label>
+          <input name="color_code" value={form.color_code} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">VIN</label>
+          <input name="vin" value={form.vin} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Número da Licença</label>
+          <input name="licence_number" value={form.licence_number} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Estado</label>
+          <input name="state" value={form.state} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Cidade</label>
+          <input name="city" value={form.city} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Data de Aquisição</label>
+          <input type="date" name="dt_acquisition" value={form.dt_acquisition} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Odômetro na Aquisição</label>
+          <input type="number" name="odometer_acquisition" value={form.odometer_acquisition} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Data de Venda</label>
+          <input type="date" name="dt_sale" value={form.dt_sale} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Portas</label>
+          <input type="number" name="doors" value={form.doors} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Capacidade</label>
+          <input type="number" name="capacity" value={form.capacity} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Potência</label>
+          <input type="number" name="power" value={form.power} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Valor Estimado</label>
+          <input type="number" step="0.01" name="estimated_value" value={form.estimated_value} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Capacidade Total</label>
+          <input type="number" name="full_capacity" value={form.full_capacity} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Consumo Médio</label>
+          <input type="number" step="0.01" name="avg_consumption" value={form.avg_consumption} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Custo Médio por Litro</label>
+          <input type="number" step="0.01" name="avg_cost_litre" value={form.avg_cost_litre} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Data Odômetro</label>
+          <input type="date" name="dt_odometer" value={form.dt_odometer} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Odômetro</label>
+          <input type="number" name="odometer" value={form.odometer} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Data Último Abastecimento</label>
+          <input type="date" name="dt_last_fueling" value={form.dt_last_fueling} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tipo Último Abastecimento (ID)</label>
+          <input type="number" name="last_supply_reason_type" value={form.last_supply_reason_type} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Litros Acumulados</label>
+          <input type="number" step="0.01" name="accumulated_number_liters" value={form.accumulated_number_liters} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Valor Abastecido Acumulado</label>
+          <input type="number" step="0.01" name="accumulated_supply_value" value={form.accumulated_supply_value} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Proprietário</label>
+          {options.persons ? (
+            <select name="vehicle_owner" value={form.vehicle_owner ?? ''} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2">
+              <option value="">-- selecione --</option>
+              {options.persons.map(p => (
+                <option key={p.code ?? p.id ?? String(p)} value={p.code ?? p.id ?? String(p)}>
+                  {p.name  || String(p)}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input name="vehicle_owner" value={form.vehicle_owner || ''} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Imagem</label>
+          <input type="file" name="image" onChange={handleChange} className="mt-1 block w-full" />
         </div>
 
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700">Observações</label>
-          <textarea name="notes" value={form.notes} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" rows={2} />
+          <textarea name="notes" value={form.notes} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" rows={3} />
         </div>
 
         <div className="md:col-span-2 flex justify-end gap-3">
           <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-android-accent text-white rounded">{loading ? 'Salvando...' : 'Salvar'}</button>
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-android-blue text-white rounded">{loading ? 'Salvando...' : 'Salvar'}</button>
         </div>
       </form>
     </div>

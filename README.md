@@ -39,7 +39,7 @@ Sempre que precisar configurar o ambiente em uma nova máquina ou retomar o proj
 
 ### 1. Pré-requisitos
 - Node.js instalado (versão 18 ou superior).
-- Projeto Backend (Spring Boot) configurado para aceitar **CORS** da origem `http://localhost:5173`.
+- Projeto Backend (Spring Boot) configurado para aceitar **CORS** da origem `http://localhost:5174`.
 
 ### 2. Instalação
 No terminal da raiz do projeto, instale todas as dependências listadas no `package.json`:
