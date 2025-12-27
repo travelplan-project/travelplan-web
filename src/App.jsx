@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
-import VehicleDetail from './pages/VehicleDetail';
 import CreateVehicle from './pages/CreateVehicle';
 
 function App() {
@@ -17,7 +16,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/vehicles/new" element={<CreateVehicle />} />
-            <Route path="/vehicles/:id" element={<VehicleDetail />} />
+            <Route path="/vehicles/:id/edit" element={<CreateVehicle />} />
           </Routes>
         </main>
       </div>

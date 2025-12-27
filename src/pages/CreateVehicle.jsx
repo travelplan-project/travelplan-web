@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 
 export default function CreateVehicle() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const [form, setForm] = useState({
     name: '',
     short_name: '',
@@ -45,9 +47,55 @@ export default function CreateVehicle() {
   const [options, setOptions] = useState({ persons: null });
 
   useEffect(() => {
-    const fetchPersons = async () => {
-      const candidates = ['/person', '/persons', '/people', '/person/list', '/persons/list'];
+    const fetchVehicleTypes = async () => {
+      const candidates = ['/VehicleType'];
+      const absoluteBase = 'http://localhost:8081';
       for (const url of candidates) {
+        try {
+          const res = await api.get(url);
+          const body = res.data;
+          let list = null;
+          if (Array.isArray(body)) list = body;
+          else if (Array.isArray(body.data)) list = body.data;
+          else if (Array.isArray(body.items)) list = body.items;
+          else if (Array.isArray(body.content)) list = body.content;
+          if (Array.isArray(list)) {
+            setOptions(prev => ({ ...prev, vehicle_types: list }));
+            return;
+          }
+        } catch (e) {
+          // try absolute
+        }
+
+        try {
+          const r2 = await fetch(`${absoluteBase}${url}`);
+          if (r2.ok) {
+            const body2 = await r2.json();
+            let list2 = null;
+            if (Array.isArray(body2)) list2 = body2;
+            else if (Array.isArray(body2.data)) list2 = body2.data;
+            else if (Array.isArray(body2.items)) list2 = body2.items;
+            else if (Array.isArray(body2.content)) list2 = body2.content;
+            if (Array.isArray(list2)) {
+              setOptions(prev => ({ ...prev, vehicle_types: list2 }));
+              return;
+            }
+          }
+        } catch (e) {
+          // continue
+        }
+      }
+      setOptions(prev => ({ ...prev, vehicle_types: null }));
+    };
+    fetchVehicleTypes();
+  }, []);
+
+  useEffect(() => {
+    const fetchPersons = async () => {
+      const candidates = [ '/persons'];
+      const absoluteBase = 'http://localhost:8081';
+      for (const url of candidates) {
+        // try using api instance (which may prefix /api)
         try {
           const res = await api.get(url);
           const body = res.data;
@@ -58,22 +106,97 @@ export default function CreateVehicle() {
           else if (Array.isArray(body.content)) list = body.content;
 
           if (Array.isArray(list)) {
-            setOptions({ persons: list });
+            setOptions(prev => ({ ...prev, persons: list }));
             return;
           }
         } catch (e) {
-          // try next endpoint
+          // try absolute path next
+        }
+
+        // try absolute backend URL (no /api prefix)
+        try {
+          const r2 = await fetch(`${absoluteBase}${url}`);
+          if (r2.ok) {
+            const body2 = await r2.json();
+            let list2 = null;
+            if (Array.isArray(body2)) list2 = body2;
+            else if (Array.isArray(body2.data)) list2 = body2.data;
+            else if (Array.isArray(body2.items)) list2 = body2.items;
+            else if (Array.isArray(body2.content)) list2 = body2.content;
+            if (Array.isArray(list2)) {
+              setOptions({ persons: list2 });
+              return;
+            }
+          }
+        } catch (e) {
+          // continue
         }
       }
-      setOptions({ persons: null });
+      setOptions(prev => ({ ...prev, persons: null }));
     };
     fetchPersons();
   }, []);
 
+  useEffect(() => {
+    if (!isEdit) return;
+    setLoading(true);
+    api.get(`/vehicles/${id}`)
+      .then(res => {
+        const v = res.data || {};
+        const mapped = {
+          name: v.name ?? '',
+          short_name: v.short_name ?? '',
+          brand: v.brand ?? '',
+          model: v.model ?? '',
+          vehicle_type: v.vehicle_type?.id ?? v.vehicle_type ?? v.vehicleType ?? v.vehicle_type_id ?? v.vehicle_type ?? '',
+          fuel_type: v.fuel_type?.id ?? v.fuel_type ?? '',
+          year_model: v.year_model ?? '',
+          year_manufacture: v.year_manufacture ?? '',
+          license_plate: v.license_plate ?? '',
+          color: v.color ?? '',
+          color_code: v.color_code ?? '',
+          vin: v.vin ?? '',
+          licence_number: v.licence_number ?? '',
+          state: v.state ?? '',
+          city: v.city ?? '',
+          dt_acquisition: v.dt_acquisition ?? '',
+          odometer_acquisition: v.odometer_acquisition ?? '',
+          dt_sale: v.dt_sale ?? '',
+          doors: v.doors ?? '',
+          capacity: v.capacity ?? '',
+          power: v.power ?? '',
+          estimated_value: v.estimated_value ?? '',
+          full_capacity: v.full_capacity ?? '',
+          avg_consumption: v.avg_consumption ?? '',
+          avg_cost_litre: v.avg_cost_litre ?? '',
+          dt_odometer: v.dt_odometer ?? '',
+          odometer: v.odometer ?? '',
+          dt_last_fueling: v.dt_last_fueling ?? '',
+          last_supply_reason_type: v.last_supply_reason_type ?? '',
+          accumulated_number_liters: v.accumulated_number_liters ?? '',
+          accumulated_supply_value: v.accumulated_supply_value ?? '',
+          vehicle_owner: v.vehicle_owner?.id ?? v.vehicle_owner ?? null,
+          image: null,
+          notes: v.notes ?? ''
+        };
+        setForm(mapped);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Erro ao carregar veículo para edição:', err);
+        setError(err);
+        setLoading(false);
+      });
+  }, [id, isEdit]);
+
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
     if (type === 'file') return setForm(prev => ({ ...prev, [name]: files?.[0] || null }));
-    setForm(prev => ({ ...prev, [name]: value }));
+    let newValue = value;
+    if (name === 'vehicle_owner') {
+      newValue = value === '' ? '' : Number(value);
+    }
+    setForm(prev => ({ ...prev, [name]: newValue }));
   };
 
   const handleSubmit = (e) => {
@@ -105,7 +228,7 @@ export default function CreateVehicle() {
       dt_sale: form.dt_sale || null,
       dt_odometer: form.dt_odometer || null,
       dt_last_fueling: form.dt_last_fueling || null,
-      vehicle_owner: form.vehicle_owner || null,
+      vehicle_owner: (form.vehicle_owner === '' || form.vehicle_owner == null) ? null : { id: Number(form.vehicle_owner) },
       image: form.image || null,
     };
 
@@ -113,23 +236,35 @@ export default function CreateVehicle() {
     if (form.image instanceof File) {
       const fd = new FormData();
       Object.entries(payload).forEach(([k, v]) => {
-        if (v !== undefined && v !== null) fd.append(k, String(v));
+        if (v === undefined || v === null) return;
+        if (typeof v === 'object' && !(v instanceof File)) fd.append(k, JSON.stringify(v));
+        else fd.append(k, String(v));
       });
       fd.append('image', form.image);
 
-      api.post('/vehicles', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const req = isEdit
+        ? api.put(`/vehicles/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : api.post('/vehicles', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+
+      req
         .then(() => { setLoading(false); navigate('/'); })
-        .catch(err => { setLoading(false); setError(err.response?.data || err.message || 'Erro ao criar veículo'); });
+        .catch(err => { setLoading(false); setError(err.response?.data || err.message || (isEdit ? 'Erro ao atualizar veículo' : 'Erro ao criar veículo')); });
     } else {
-      api.post('/vehicles', payload)
+      const req = isEdit
+        ? api.put(`/vehicles/${id}`, payload)
+        : api.post('/vehicles', payload);
+
+      req
         .then(() => { setLoading(false); navigate('/'); })
-        .catch(err => { setLoading(false); setError(err.response?.data || err.message || 'Erro ao criar veículo'); });
+        .catch(err => { setLoading(false); setError(err.response?.data || err.message || (isEdit ? 'Erro ao atualizar veículo' : 'Erro ao criar veículo')); });
     }
   };
 
+  
+
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-semibold mb-4">Novo Veículo</h2>
+      <h2 className="text-xl font-semibold mb-4">{isEdit ? 'Editar Veículo' : 'Novo Veículo'}</h2>
 
       {error && (
         <div className="mb-4 text-red-600">
@@ -159,8 +294,8 @@ export default function CreateVehicle() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Tipo (ID)</label>
-          <input name="vehicle_type" value={form.vehicle_type} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
+          <label className="block text-sm font-medium text-gray-700">Tipo</label>
+            <input name="vehicle_type" value={form.vehicle_type} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
 
         <div>
@@ -299,8 +434,8 @@ export default function CreateVehicle() {
             <select name="vehicle_owner" value={form.vehicle_owner ?? ''} onChange={handleChange} className="mt-1 block w-full border rounded px-3 py-2">
               <option value="">-- selecione --</option>
               {options.persons.map(p => (
-                <option key={p.code ?? p.id ?? String(p)} value={p.code ?? p.id ?? String(p)}>
-                  {p.name  || String(p)}
+                <option key={p.id ?? p.code ?? String(p)} value={p.id ?? (p.code ? Number(p.code) : '')}>
+                  {p.name || p.full_name || `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || String(p)}
                 </option>
               ))}
             </select>

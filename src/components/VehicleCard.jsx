@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
+import editIcon from '../assets/edit.svg';
+import deleteIcon from '../assets/delete.svg';
+import spinnerIcon from '../assets/spinner.svg';
 
 const VehicleCard = ({ vehicle }) => {
   const sold = Boolean(vehicle?.dt_sale);
@@ -12,8 +16,24 @@ const VehicleCard = ({ vehicle }) => {
   if (statusKey === 'vendido') statusColor = 'bg-red-100 text-red-700';
   else if (statusKey !== 'ativo') statusColor = 'bg-yellow-100 text-yellow-700';
 
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async (ev) => {
+    ev.preventDefault();
+    if (!window.confirm('Deseja realmente excluir este veículo?')) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/vehicles/${vehicle?.id}`);
+      window.location.reload();
+    } catch (err) {
+      console.error('Erro ao excluir veículo:', err);
+      alert('Erro ao excluir veículo');
+      setDeleting(false);
+    }
+  };
+
   return (
-    <Link to={`/vehicles/${vehicle?.id}`} className="block">
+    <div className="block">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-linear-to-br from-gray-100 to-gray-50 rounded-lg flex items-center justify-center text-2xl">🚗</div>
@@ -30,8 +50,21 @@ const VehicleCard = ({ vehicle }) => {
             </span>
           </div>
         </div>
+
+        <div className="mt-3 flex justify-end gap-2">
+          <Link to={`/vehicles/${vehicle?.id}/edit`} className="px-3 py-1 bg-android-accent text-white rounded-md flex items-center justify-center" aria-label="Editar">
+            <img src={editIcon} alt="Editar" className="h-4 w-4" />
+          </Link>
+          <button onClick={handleDelete} disabled={deleting} className="px-3 py-1 bg-red-600 text-white rounded-md flex items-center justify-center" aria-label="Excluir">
+            {deleting ? (
+              <img src={spinnerIcon} alt="Excluindo" className="h-4 w-4 animate-spin" />
+            ) : (
+              <img src={deleteIcon} alt="Excluir" className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
