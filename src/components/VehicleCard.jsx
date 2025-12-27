@@ -4,6 +4,8 @@ import api from '../services/api';
 import editIcon from '../assets/edit.svg';
 import deleteIcon from '../assets/delete.svg';
 import spinnerIcon from '../assets/spinner.svg';
+import pinIcon from '../assets/pin.svg';
+import { usePinnedVehicle } from '../context/PinnedVehicleContext';
 
 const VehicleCard = ({ vehicle }) => {
   const sold = Boolean(vehicle?.dt_sale);
@@ -17,6 +19,8 @@ const VehicleCard = ({ vehicle }) => {
   else if (statusKey !== 'ativo') statusColor = 'bg-yellow-100 text-yellow-700';
 
   const [deleting, setDeleting] = useState(false);
+  const { pinnedId, setPinnedVehicleId } = usePinnedVehicle();
+  const pinned = String(pinnedId) === String(vehicle?.id);
 
   const handleDelete = async (ev) => {
     ev.preventDefault();
@@ -32,6 +36,17 @@ const VehicleCard = ({ vehicle }) => {
     }
   };
 
+  const handlePin = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    try {
+      if (pinned) setPinnedVehicleId(null);
+      else setPinnedVehicleId(vehicle?.id);
+    } catch (e) {
+      console.error('Erro ao setar pin:', e);
+    }
+  };
+
   return (
     <div className="block">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer">
@@ -44,7 +59,10 @@ const VehicleCard = ({ vehicle }) => {
             <p className="text-sm text-gray-400 mt-1">{vehicle?.model || 'Modelo não informado'}</p>
           </div>
 
-          <div className="text-right">
+          <div className="text-right flex flex-col items-end">
+            <button onClick={handlePin} aria-pressed={pinned} aria-label="Pin" className={`mb-2 p-1 rounded ${pinned ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-100 text-gray-600'}`}>
+              <img src={pinIcon} alt="Pin" className="h-4 w-4" />
+            </button>
             <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase ${statusColor}`}>
               {statusKey}
             </span>

@@ -19,11 +19,12 @@ export default function SlideMenu({ open, onClose }) {
           <ul className="flex flex-col">
             <li className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">Principal</li>
             <li><Link to="/" className="block px-3 py-2 rounded hover:bg-gray-50">Home Veículos</Link></li>
+            <li><Link to="/" className="block px-3 py-2 rounded hover:bg-gray-50">Home Viagens</Link></li>
 
             <li className="my-3 border-t" />
 
             <li className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">Gestão de Frotas</li>
-            <li><Link to="/vehicles" className="block px-3 py-2 rounded hover:bg-gray-50">Veículos</Link></li>
+            <li><Link to="/vehicles/new" className="block px-3 py-2 rounded hover:bg-gray-50">Veículos</Link></li>
             <li><Link to="/fuel_supplies" className="block px-3 py-2 rounded hover:bg-gray-50">Abastecimentos</Link></li>
             <li><Link to="/maintenances" className="block px-3 py-2 rounded hover:bg-gray-50">Manutenções</Link></li>
             <li><Link to="/pending_vehicles" className="block px-3 py-2 rounded hover:bg-gray-50">Pendencias nos Veículos</Link></li>

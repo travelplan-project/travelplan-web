@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import api from '../services/api';
 import VehicleCard from '../components/VehicleCard';
 import { useNavigate } from 'react-router-dom';
+import { usePinnedVehicle } from '../context/PinnedVehicleContext';
 
 export default function Home() {
   const [veiculos, setVeiculos] = useState([]);
@@ -44,6 +45,26 @@ export default function Home() {
       return name.includes(q) || plate.includes(q);
     });
   }, [veiculos, query]);
+
+  const { pinnedId } = usePinnedVehicle();
+  const [pinnedVehicle, setPinnedVehicle] = useState(null);
+  const [pinnedLoading, setPinnedLoading] = useState(false);
+  const [pinnedError, setPinnedError] = useState(null);
+
+  useEffect(() => {
+    if (!pinnedId) {
+      setPinnedVehicle(null);
+      setPinnedError(null);
+      setPinnedLoading(false);
+      return;
+    }
+    setPinnedLoading(true);
+    setPinnedError(null);
+    api.get(`/vehicles/${pinnedId}`)
+      .then(res => setPinnedVehicle(res.data))
+      .catch(err => setPinnedError(err))
+      .finally(() => setPinnedLoading(false));
+  }, [pinnedId]);
 
   return (
     <div>
@@ -104,6 +125,27 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {pinnedLoading ? (
+        <div className="max-w-6xl mx-auto text-sm text-gray-600 mt-6">Carregando veículo selecionado...</div>
+      ) : pinnedError ? (
+        <div className="max-w-6xl mx-auto text-sm text-red-600 mt-6">Erro ao carregar veículo selecionado.</div>
+      ) : pinnedVehicle ? (
+        <section className="mt-6">
+          <div className="max-w-2xl mx-left bg-white p-3 rounded shadow-sm">
+            <h3 className="font-semibold text-lg">Veículo Selecionado</h3>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+              <div><span className="font-medium">ID:</span> {pinnedVehicle.id}</div>
+              <div><span className="font-medium">Nome:</span> {pinnedVehicle.name || '—'}</div>
+              <div><span className="font-medium">Placa:</span> {pinnedVehicle.license_plate || '—'}</div>
+              <div><span className="font-medium">Modelo:</span> {pinnedVehicle.model || '—'}</div>
+              <div><span className="font-medium">Status:</span> {pinnedVehicle.status || (pinnedVehicle.dt_sale ? 'Vendido' : 'Ativo')}</div>
+              <div><span className="font-medium">Kilometragem:</span> {pinnedVehicle.odometer ?? '—'}</div>
+            </div>
+            {pinnedVehicle.notes && <p className="mt-3 text-sm text-gray-600">{pinnedVehicle.notes}</p>}
+          </div>
+        </section>
+      ) : null}
 
       <button onClick={() => navigate('/vehicles/new')} className="fixed bottom-6 right-6 w-14 h-14 bg-android-accent text-white rounded-full shadow-2xl text-3xl flex items-center justify-center hover:scale-110 transition-transform">
         +
